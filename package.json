@@ -13,7 +13,8 @@
     "dev:ssr": "ng run AngularSSR:serve-ssr",
     "serve:ssr": "node dist/AngularSSR/server/main.js",
     "build:ssr": "ng build --prod && ng run AngularSSR:server:production",
-    "prerender": "ng run AngularSSR:prerender"
+    "prerender": "ng run AngularSSR:prerender",
+    "build:azure": "npm run build:ssr && node azure-assets.js"
   },
   "private": true,
   "dependencies": {
