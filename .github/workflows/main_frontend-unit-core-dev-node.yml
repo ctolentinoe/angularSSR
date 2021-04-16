@@ -25,13 +25,13 @@ jobs:
         run: |
           npm install
           npm run test-headless --if-present
-          npm run build:ssr --if-present
+          npm run build:azure --if-present
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
           name: node-app
-          path: .
+          path: ./azureDist
 
   deploy:
     runs-on: ubuntu-latest
