@@ -43,8 +43,8 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install Dependency
-        run: npm install
+#      - name: Install Dependency
+#        run: npm install
 
       - name: Build Angular App
         run: npm run build:azure
