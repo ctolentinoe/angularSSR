@@ -9,48 +9,66 @@ on:
       - main
   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+env:
+  AZURE_WEBAPP_NAME: frontend-unit-core-dev-node        # set this to your application's name
+  AZURE_WEBAPP_PACKAGE_PATH: ./azureDist                # set this to the path to your web app project, defaults to the repository root
+  NODE_VERSION: '12.x'                                  # set this to the node version to use
+  NAME_ARTEFACT: angular-ssr
 
+jobs:
+  ci:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: Set up Node.js version
         uses: actions/setup-node@v1
         with:
-          node-version: '12.13.0'
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: npm install, build, and test
-        run: |
-          npm install
-          npm run test-headless --if-present
-          npm run build:azure --if-present
+      - name: Install Dependency
+        run: npm install
+
+      - name: Run Unit and Integration Test
+        run: npm run test-headless --if-present
+
+  build:
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Dependency
+        run: npm install
+
+      - name: Build Angular App
+        run: npm run build:azure
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
-          name: node-app
-          path: ./azureDist
+          name: ${{ env.NAME_ARTEFACT }}
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH  }}
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v2
         with:
-          name: node-app
+          name: ${{ env.NAME_ARTEFACT }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'frontend-unit-core-dev-node'
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: 'production'
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_ed5861ce21354e86bc07c3628b120f37 }}
           package: .
